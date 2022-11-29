@@ -31,7 +31,7 @@ section .bss
   base resb BYTES_INT
   rem resb BYTES_INT
   ; =====
-  input resb BUFFER_SIZE
+  STRING_BUF resb BUFFER_SIZE
 
 global _start
 
@@ -50,7 +50,6 @@ section .text
     jl expBelow1            ; Return 1
 
     push rbx                ; Store the exponent in stack
-    dec rbx                 ; Decrement the exponent by 1 (example 2^5)
     push rcx
     mov rcx, rax            ; Store the original base in RCX
   powerLoop:
@@ -80,25 +79,82 @@ section .text
 
   read:                     ; read()
     mov rdx, BUFFER_SIZE
-    mov rsi, input
+    mov rsi, STRING_BUF
     mov rdi, STDIN
     mov rax, SYS_READ
     syscall
     ret
 
-  printString:              ; printString(char* rax [msg])
-    push rcx                ; SYSCALL or SYS_WRITE will destroy the value stored in rcx. It should be stored safely in stack
-    push rax                ; strlen will modify RAX. Store RAX safely in stack
+  printString:              ; printString(char* rbx [msg])
+    mov rax, rbx            ; Pass the msg to Arg0
     call strlen             ; Determine the length of the string in RAX
 
     mov rdx, rax            ; Pass the length to arg2 of SYS_WRITE
-    pop rsi                 ; Set the string to write to STDOUT
+    mov rsi, rbx            ; Set the string to write to STDOUT
     mov rdi, STDOUT         ; Set stream to write to STDOUT
     mov rax, SYS_WRITE      ; Set the OPCODE to 'write'
     syscall                 ; Send the system interrupt
 
-    pop rcx                 ; Restore the saved RCX value
     ret                     ; End the function
 
+  printChar:                ; printChar(char rbx [character])
+    push rbx
+
+    mov rdx, 1              ; Pass the length to arg2 of SYS_WRITE
+    mov rsi, rsp            ; Set the string to write to STDOUT
+    mov rdi, STDOUT         ; Set stream to write to STDOUT
+    mov rax, SYS_WRITE      ; Set the OPCODE to 'write'
+    syscall                 ; Send the system interrupt
+
+    pop rbx
+    ret
+
+  calculate:                ; calculate(char* rdi [input], int rsi [size] )
+    mov rcx, -1             ; Loop register
+    mov rbx, 0              ; The register holding the acc value
+  
+  calculateLoop:
+    inc rcx
+
+
+    ; Calculate the exponent for the bit position
+    mov rdx, rsi
+    sub rdx, 1
+    sub rdx, rcx
+
+    ; Calculate the decimal value
+    push rbx
+    mov rax, 2
+    mov rbx, rdx
+    call power
+
+    ; Grab the bit starting from position at RCX
+    ; rdx will hold the bit
+    mov rdx, rdi
+    add rdx, rcx
+
+    ; Multiply the decimal value by whether or not the bit is enabled
+    mul rdx
+
+    ; Add result to the acc register
+    pop rbx
+    add rbx, rax
+
+    cmp rcx, rsi
+    jl calculateLoop
+    ret
+
   _start:
+    call read
+
+    mov rax, STRING_BUF
+    call strlen 
+
+    mov rdi, STRING_BUF
+    mov rsi, rax
+    call calculate
+
+    add rbx, ASCII_ZERO
+    push rbx
+    call printChar 
     exit
