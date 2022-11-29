@@ -63,6 +63,7 @@ section .text
     cmp cl, ASCII_NULL      ; Check if the current character is a NULL bit
     jne strlenLoop          ; If the current character is NOT a null bit, loop back to the top
     sub rax, rbx            ; If the current character IS a null bit, calculate the difference of RAX (one edge of string) and RBX (other edge of string) to find the length
+    sub rax, 1              ; Do not count the newline byte
     ret                     ; Returns the string length in RAX
 
   read:                     ; read()
