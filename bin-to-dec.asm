@@ -45,12 +45,14 @@ section .text
   power:                    ; power(int rax [base], int rbx [exponent])
     push rbx                ; Store the exponent in stack
     dec rbx                 ; Decrement the exponent by 1 (example 2^5)
+    push rcx
     mov rcx, rax            ; Store the original base in RCX
   powerLoop:
     mul rcx                 ; Multiply RAX by RCX
     dec rbx                 ; Decrement the exponent by 1
     cmp rbx, 0              ; Is the exponent equal to 0?
     jne powerLoop           ; If not, loop again
+    pop rcx
     pop rbx                 ; Restore the original exponent
     ret                     ; Returns the power in RAX
 
