@@ -42,19 +42,19 @@ global _start
 %endmacro
 
 section .text
-  power:
-    push rbx
-    dec rbx
-    mov rcx, rax
+  power:                    ; power(int rax [base], int rbx [exponent])
+    push rbx                ; Store the exponent in stack
+    dec rbx                 ; Decrement the exponent by 1 (example 2^5)
+    mov rcx, rax            ; Store the original base in RCX
   powerLoop:
-    mul rcx
-    dec rbx
-    cmp rbx, 0
-    jne powerLoop
-    pop rbx
-    ret
+    mul rcx                 ; Multiply RAX by RCX
+    dec rbx                 ; Decrement the exponent by 1
+    cmp rbx, 0              ; Is the exponent equal to 0?
+    jne powerLoop           ; If not, loop again
+    pop rbx                 ; Restore the original exponent
+    ret                     ; Returns the power in RAX
 
-  strlen:                   ; strlen(char* rax)
+  strlen:                   ; strlen(char* rax [msg])
     mov rbx, rax            ; Store the value of RAX in RBX
 
   strlenLoop:
@@ -63,41 +63,17 @@ section .text
     cmp cl, ASCII_NULL      ; Check if the current character is a NULL bit
     jne strlenLoop          ; If the current character is NOT a null bit, loop back to the top
     sub rax, rbx            ; If the current character IS a null bit, calculate the difference of RAX (one edge of string) and RBX (other edge of string) to find the length
-    ret                     ; End the function
+    ret                     ; Returns the string length in RAX
 
-                            ; read()
-  read:
-    mov RDX, BUFFER_SIZE
-    mov RSI, input
-    mov RDI, STDIN
-    mov RAX, SYS_READ
+  read:                     ; read()
+    mov rdx, BUFFER_SIZE
+    mov rsi, input
+    mov rdi, STDIN
+    mov rax, SYS_READ
     syscall
     ret
 
-  calculate:  ;rbx size, rax num
-    sub rbx, 1
-
-
-  ; numericValidation:        ; numericValidation(char* rax, int rsi)
-  ;   push rax
-  ;   add rax, rsi
-  ;   mov rcx, rax
-  ;   pop rax
-  ;   cmp rcx, ASCII_ZERO
-  ;   jl  numericValidationFail
-  ;   cmp rcx, ASCII_NINE
-  ;   jg  numericValidationFail
-  ;   cmp rsi, 0
-  ;   je  numericValidationTrue
-  ; numericValidationFail:
-  ;   xor rax, rax
-  ;   ret
-  ; numericValidationTrue:
-  ;   mov rax, 1
-  ;   ret
-
-
-  printString:              ; printString(char* rax)
+  printString:              ; printString(char* rax [msg])
     push rcx                ; SYSCALL or SYS_WRITE will destroy the value stored in rcx. It should be stored safely in stack
     push rax                ; strlen will modify RAX. Store RAX safely in stack
     call strlen             ; Determine the length of the string in RAX
@@ -107,42 +83,9 @@ section .text
     mov rdi, STDOUT         ; Set stream to write to STDOUT
     mov rax, SYS_WRITE      ; Set the OPCODE to 'write'
     syscall                 ; Send the system interrupt
+
     pop rcx                 ; Restore the saved RCX value
     ret                     ; End the function
 
-  ;                           ; printInt(int* rax)
-  ; printInt:
-  ;   mov rbx, 10             ; Set the divisor to 10
-  ;   mov rcx, 0              ; Set the bit/number position to 0
-
-  ; printIntPushLoop:
-  ;   mov rdx, 0              ; By default, `div` will return join RDX:RAX. Set RDX to 0 to prevent arithmatic errors
-  ;   div rbx                 ; Divide RAX by RBX
-
-  ;   add rdx, ASCII_ZERO     ; Convert single-digit integer to ASCII by offseting by 48
-  ;   push rdx                ; Push the ascii-digit to the stack
-  ;   inc rcx                 ; Increment to next bit/number position
-
-  ;   cmp rax, 0              ; Check if the dividend is 0
-  ;   jne printIntPushLoop    ; If the dividend IS NOT 0, start the process again
-
-  ; printStringPopLoop:
-  ;   mov rax, rsp            ; Store the address of the top item in the stack in RAX
-  ;   call printString        ; Print the value stored in RAX
-  ;   pop rax                 ; Remove the item from the stack
-  ;   dec rcx                 ; Decrement the bit/number position
-  ;   cmp rcx, 0              ; Check if we have reached the last digit
-  ;   jne printStringPopLoop  ; If more numbers remain, print and remove the next digit
-  ;   ret                     ; End the function
-
   _start:
-    ; mov rax, STR_PROMPT
-    ; call printString          ; Prompt the user
-    ; call read                 ; Read the name
-
-
-
-
-    ; mov rax, [num]
-    ; call printInt
     exit
