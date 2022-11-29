@@ -43,6 +43,12 @@ global _start
 
 section .text
   power:                    ; power(int rax [base], int rbx [exponent])
+    cmp rax, 0              ; Check if the base is equal to 0
+    je baseEqu0             ; Return 0 (rax)
+
+    cmp rbx, 1              ; Check if the exponent is lower than 1
+    jl expBelow1            ; Return 1
+
     push rbx                ; Store the exponent in stack
     dec rbx                 ; Decrement the exponent by 1 (example 2^5)
     push rcx
@@ -54,7 +60,11 @@ section .text
     jne powerLoop           ; If not, loop again
     pop rcx
     pop rbx                 ; Restore the original exponent
+  baseEqu0:
     ret                     ; Returns the power in RAX
+  expBelow1:
+    mov rax, 1
+    ret
 
   strlen:                   ; strlen(char* rax [msg])
     mov rbx, rax            ; Store the value of RAX in RBX
