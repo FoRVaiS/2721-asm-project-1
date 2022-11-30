@@ -29,7 +29,7 @@ section .bss
 global _start
 
 %macro exit 0
-  xor     rbx, rbx    
+  xor     rbx, rbx
   mov     rax, SYS_EXIT
   syscall
 %endmacro
@@ -42,27 +42,28 @@ section .text
     cmp   rbx, 1              ; Check if the exponent is lower than 1
     jl    expBelow1           ; Return 1
 
-    cmp   rbx, 1              
+    cmp   rbx, 1
     je    expEqu1
 
     push  rbx                 ; Store the exponent in stack
-    dec   rbx
-    push  rcx
-    mov   rcx, rax            ; Store the original base in RCX
+    dec   rbx                 ; Decrement the exponent
+    push  rcx                 ; Store the original state of rcx
+    mov   rcx, rax            ; Store the base in rcx
   powerLoop:
-    mul   rcx                 ; Multiply RAX by RCX
+    mul   rcx                 ; Multiply power [rax] by the base [rcx]
     dec   rbx                 ; Decrement the exponent by 1
     cmp   rbx, 0              ; Is the exponent equal to 0?
     jg    powerLoop           ; If not, loop again
-    pop   rcx
+    pop   rcx                 ; Restore the original state of rcx
     pop   rbx                 ; Restore the original exponent
   expEqu1:
   baseEqu0:
     ret                       ; Returns the power in RAX
   expBelow1:
-    mov   rax, 1
+    mov   rax, 1              ; Set the power to 1
     ret
 
+  ; Returns the number of characters in a string
   strlen:                     ; strlen(char* rax [msg])
     mov   rbx, rax            ; Store the value of RAX in RBX
 
@@ -75,18 +76,20 @@ section .text
     sub   rax, 1              ; Do not count the newline byte
     ret                       ; Returns the string length in RAX
 
+  ; Reads input from user
   read:                       ; read()
-    mov   rdx, BUFFER_SIZE
-    mov   rsi, STRING_BUF
-    mov   rdi, STDIN
-    mov   rax, SYS_READ
+    mov   rdx, BUFFER_SIZE    ; Read characters from the STDIN of size BUFFER_SIZE
+    mov   rsi, STRING_BUF     ; Store string into a string buffer
+    mov   rdi, STDIN          ; Read from STDIN
+    mov   rax, SYS_READ       ; Set the instruction code to READ
     syscall
     ret
 
+  ; Prints a string given a char pointer
   printString:                ; printString(char* rbx [msg])
     mov   rax, rbx            ; Pass the msg to Arg0
     call  strlen              ; Determine the length of the string in RAX
-    add   rax, 1
+    add   rax, 1              ; Add one more byte to include the last character in string
 
     mov   rdx, rax            ; Pass the length to arg2 of SYS_WRITE
     mov   rsi, rbx            ; Set the string to write to STDOUT
@@ -96,6 +99,7 @@ section .text
 
     ret                       ; End the function
 
+  ; Prints a character given an ascii key code
   printChar:                  ; printChar(char rbx [character])
     push  rbx
 
@@ -108,38 +112,45 @@ section .text
     pop   rbx
     ret
 
+  ; Prints each digit as a char
   printInteger:               ; printInteger(int rbx [num], int rsi [size])
-    mov   rax, rbx
-    mov   rsi, 0
-    
+    mov   rax, rbx            ; Stores the original num into rax
+    mov   rsi, 0              ; The number of digits
+
   printIntegerLoop:
-    xor   rdx, rdx
-    mov   rcx, 10
-    div   rcx
+    ; Divide the num by 10 to get the last digit
+    xor   rdx, rdx            ; Reset rdx
+    mov   rcx, 10             ; Set rcx as base 10
+    div   rcx                 ; Divide rax [num] by 10
 
-    mov   rbx, rdx
-    add   rbx, ASCII_ZERO
-    push  rbx
-    inc   rsi
+    ; Store the digit as an ascii character in stack
+    mov   rbx, rdx            ; Move the value from rdx [remainder] to rbx
+    add   rbx, ASCII_ZERO     ; Convert to the digit to it's ascii representation
+    push  rbx                 ; Push the char to stack
+    inc   rsi                 ; Increment the digit counter
 
-    cmp   rax, 0
-    jne   printIntegerLoop
+    ; Ensure the entire num has been converted
+    cmp   rax, 0              ; Is the quotient equal to 0?
+    jne   printIntegerLoop    ; If not, keep dividing
 
   printIntegerReverse:
-    pop   rbx
-    push  rsi
-    call  printChar
-    pop   rsi
+    ; Print the digit char
+    pop   rbx                 ; Pop the last value from stack into rbx
+    push  rsi                 ; Rsi will be modified after calling printChar, store the value in stack
+    call  printChar           ; Print the digit char
+    pop   rsi                 ; Load the original rsi value
 
-    dec   rsi
-    cmp   rsi, 0
-    jne   printIntegerReverse
+    ; Check that the entire num has been printed
+    dec   rsi                 ; Decrement the digit counter
+    cmp   rsi, 0              ; Is the digit counter equal to 0?
+    jne   printIntegerReverse ; If not, keep printing
     ret
 
+  ; Convert a binary string to into an integer
   calculate:                  ; calculate(char* rdi [input], int rsi [size] )
     mov   rcx, 0              ; Loop counter register
     mov   rbx, 0              ; The register holding the acc value
-  
+
   calculateLoop:
     ; Calculate the exponent for the bit position
     mov   rdx, rsi
@@ -177,7 +188,7 @@ section .text
     call  read
 
     mov   rax, STRING_BUF
-    call  strlen 
+    call  strlen
 
     mov   rdi, STRING_BUF
     mov   rsi, rax
