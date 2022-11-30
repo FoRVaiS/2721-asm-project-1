@@ -24,13 +24,6 @@ section .data
   STR_PROMPT db "Enter a binary number to convert:", ASCII_NEWLINE, ASCII_NULL
 
 section .bss
-  ; =====
-  num resb BYTES_INT
-  binNum resb BYTES_INT
-  decNum resb BYTES_INT
-  base resb BYTES_INT
-  rem resb BYTES_INT
-  ; =====
   STRING_BUF resb BUFFER_SIZE
 
 global _start
@@ -110,6 +103,34 @@ section .text
     pop rbx
     ret
 
+  printInteger:             ; printInteger(int rbx [num], int rsi [size])
+    mov rax, rbx
+    mov rsi, 0
+    
+  printIntegerLoop:
+    xor rdx, rdx
+    mov rcx, 10
+    div rcx
+
+    mov rbx, rdx
+    add rbx, ASCII_ZERO
+    push rbx
+    inc rsi
+
+    cmp rax, 0
+    jne printIntegerLoop
+
+  printIntegerReverse:
+    pop rbx
+    push rsi
+    call printChar
+    pop rsi
+
+    dec rsi
+    cmp rsi, 0
+    jne printIntegerReverse
+    ret
+
   calculate:                ; calculate(char* rdi [input], int rsi [size] )
     mov rcx, 0              ; Loop counter register
     mov rbx, 0              ; The register holding the acc value
@@ -154,7 +175,5 @@ section .text
     mov rsi, rax
     call calculate
 
-    add rbx, ASCII_ZERO
-    push rbx
-    call printChar 
+    call printInteger
     exit
