@@ -128,11 +128,12 @@ section .text
 
     ; Grab the bit starting from position at RCX
     ; rdx will hold the bit
-    mov rdx, rdi
-    add rdx, rcx
+    mov dl, [rdi]
+    inc rdi
+    sub dl, ASCII_ZERO
 
     ; Multiply the decimal value by whether or not the bit is enabled
-    mul rdx
+    mul dl
 
     ; Add result to the acc register
     pop rbx
