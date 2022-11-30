@@ -82,6 +82,7 @@ section .text
   printString:              ; printString(char* rbx [msg])
     mov rax, rbx            ; Pass the msg to Arg0
     call strlen             ; Determine the length of the string in RAX
+    add rax, 1
 
     mov rdx, rax            ; Pass the length to arg2 of SYS_WRITE
     mov rsi, rbx            ; Set the string to write to STDOUT
@@ -166,6 +167,9 @@ section .text
     ret
 
   _start:
+    mov rbx, STR_PROMPT
+    call printString
+
     call read
 
     mov rax, STRING_BUF
@@ -176,4 +180,7 @@ section .text
     call calculate
 
     call printInteger
+
+    mov rbx, ASCII_NEWLINE
+    call printChar
     exit
