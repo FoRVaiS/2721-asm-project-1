@@ -111,13 +111,10 @@ section .text
     ret
 
   calculate:                ; calculate(char* rdi [input], int rsi [size] )
-    mov rcx, -1             ; Loop register
+    mov rcx, 0              ; Loop counter register
     mov rbx, 0              ; The register holding the acc value
   
   calculateLoop:
-    inc rcx
-
-
     ; Calculate the exponent for the bit position
     mov rdx, rsi
     sub rdx, 1
@@ -141,6 +138,7 @@ section .text
     pop rbx
     add rbx, rax
 
+    inc rcx
     cmp rcx, rsi
     jl calculateLoop
     ret
