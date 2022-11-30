@@ -42,6 +42,9 @@ section .text
     cmp   rbx, 1              ; Check if the exponent is lower than 1
     jl    expBelow1           ; Return 1
 
+    cmp   rbx, 1              
+    je    expEqu1
+
     push  rbx                 ; Store the exponent in stack
     dec   rbx
     push  rcx
@@ -53,6 +56,7 @@ section .text
     jg    powerLoop           ; If not, loop again
     pop   rcx
     pop   rbx                 ; Restore the original exponent
+  expEqu1:
   baseEqu0:
     ret                       ; Returns the power in RAX
   expBelow1:
