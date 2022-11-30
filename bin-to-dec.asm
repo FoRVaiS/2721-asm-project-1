@@ -50,13 +50,14 @@ section .text
     jl expBelow1            ; Return 1
 
     push rbx                ; Store the exponent in stack
+    dec rbx
     push rcx
     mov rcx, rax            ; Store the original base in RCX
   powerLoop:
     mul rcx                 ; Multiply RAX by RCX
     dec rbx                 ; Decrement the exponent by 1
     cmp rbx, 0              ; Is the exponent equal to 0?
-    jne powerLoop           ; If not, loop again
+    jg powerLoop            ; If not, loop again
     pop rcx
     pop rbx                 ; Restore the original exponent
   baseEqu0:
